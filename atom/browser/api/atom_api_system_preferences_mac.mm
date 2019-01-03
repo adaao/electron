@@ -104,6 +104,16 @@ std::string ConvertAuthorizationStatus(AVAuthorizationStatusMac status) {
   }
 }
 
+// Convert color to RGB hex value like "#ABCDEF"
+std::string ToRGBHex(NSColor* color) {
+  NSString* rgbHex = [NSString
+      stringWithFormat:@"#%02X%02X%02X", (int)(color.redComponent * 0xFF),
+                       (int)(color.greenComponent * 0xFF),
+                       (int)(color.blueComponent * 0xFF)];
+
+  return std::string([rgbHex UTF8String]);
+}
+
 }  // namespace
 
 void SystemPreferences::PostNotification(const std::string& name,
@@ -375,6 +385,41 @@ void SystemPreferences::SetUserDefault(const std::string& name,
   } else {
     args->ThrowError("Invalid type: " + type);
     return;
+  }
+}
+
+std::string SystemPreferences::GetSystemColor(const std::string& color,
+                                              mate::Arguments* args) {
+  if (@available(macOS 10.10, *)) {
+    NSColor* sysColor;
+    if (color == "blue") {
+      sysColor = [NSColor systemBlueColor];
+    } else if (color == "brown") {
+      sysColor = [NSColor systemBrownColor];
+    } else if (color == "gray") {
+      sysColor = [NSColor systemGrayColor];
+    } else if (color == "green") {
+      sysColor = [NSColor systemGreenColor];
+    } else if (color == "orange") {
+      sysColor = [NSColor systemOrangeColor];
+    } else if (color == "pink") {
+      sysColor = [NSColor systemPinkColor];
+    } else if (color == "purple") {
+      sysColor = [NSColor systemPurpleColor];
+    } else if (color == "red") {
+      sysColor = [NSColor systemRedColor];
+    } else if (color == "yellow") {
+      sysColor = [NSColor systemYellowColor];
+    } else {
+      args->ThrowError("Unknown system color: " + color);
+      return "";
+    }
+
+    return ToRGBHex(sysColor);
+  } else {
+    args->ThrowError(
+        "This api is not available on MacOS version 10.9 or lower.");
+    return "";
   }
 }
 
