@@ -104,6 +104,17 @@ std::string ConvertAuthorizationStatus(AVAuthorizationStatusMac status) {
   }
 }
 
+// Convert color to RGBA value like "#ABCDEF"
+std::string ToRGBA(NSColor* color) {
+  NSString* rgbHex = [NSString
+      stringWithFormat:@"%02X%02X%02X%02X", (int)(color.redComponent * 0xFF),
+                       (int)(color.greenComponent * 0xFF),
+                       (int)(color.blueComponent * 0xFF),
+                       (int)(color.alphaComponent * 0xFF)];
+
+  return std::string([rgbHex UTF8String]);
+}
+
 }  // namespace
 
 void SystemPreferences::PostNotification(const std::string& name,
@@ -376,6 +387,14 @@ void SystemPreferences::SetUserDefault(const std::string& name,
     args->ThrowError("Invalid type: " + type);
     return;
   }
+}
+
+std::string SystemPreferences::GetAccentColor() {
+  NSColor* sysColor = nil;
+  if (@available(macOS 10.14, *))
+    sysColor = [NSColor controlAccentColor];
+
+  return ToRGBA(sysColor);
 }
 
 bool SystemPreferences::IsTrustedAccessibilityClient(bool prompt) {
